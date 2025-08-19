@@ -25,5 +25,17 @@ services:
     environment:
       DATABASE_URL: postgres://postgres:postgres@db:5432/comprog
 
+  frontend:
+    image: node:20-alpine
+    container_name: comprog_frontend
+    working_dir: /app/frontend
+    command: sh -c "npm install --no-audit --no-fund && npm run dev -- --host 0.0.0.0"
+    volumes:
+      - .:/app
+    ports:
+      - "5173:5173"
+    depends_on:
+      - web
+
 volumes:
   postgres_data:
