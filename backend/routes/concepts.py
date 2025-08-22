@@ -1,7 +1,7 @@
 from typing import List
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from ..db import get_db
 from .. import models, schemas, auth
@@ -9,7 +9,7 @@ from .. import models, schemas, auth
 router = APIRouter(tags=["concepts"])
 
 
-@router.get("/", response_model=List[schemas.ConceptOut])
+@router.get("/", response_model=List[schemas.ConceptDetail])
 def list_concepts(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_active_user),
@@ -20,7 +20,7 @@ def list_concepts(
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
 ):
-    query = db.query(models.Concept)
+    query = db.query(models.Concept).options(joinedload(models.Concept.author))
     
     # Non-admin users can only see published concepts
     if not current_user.is_admin:
@@ -67,7 +67,7 @@ def get_concept(
     return concept
 
 
-@router.post("/", response_model=schemas.ConceptOut)
+@router.post("/", response_model=schemas.ConceptDetail)
 def create_concept(
     payload: schemas.ConceptCreate, 
     db: Session = Depends(get_db),
@@ -81,17 +81,18 @@ def create_concept(
     db.add(concept)
     db.commit()
     db.refresh(concept)
-    return concept
+    # Reload with author information
+    return db.query(models.Concept).options(joinedload(models.Concept.author)).filter(models.Concept.id == concept.id).first()
 
 
-@router.put("/{concept_id}", response_model=schemas.ConceptOut)
+@router.put("/{concept_id}", response_model=schemas.ConceptDetail)
 def update_concept(
     concept_id: int, 
     payload: schemas.ConceptUpdate, 
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_admin_user)
 ):
-    concept = db.query(models.Concept).filter(models.Concept.id == concept_id).first()
+    concept = db.query(models.Concept).options(joinedload(models.Concept.author)).filter(models.Concept.id == concept_id).first()
     if not concept:
         raise HTTPException(status_code=404, detail="Concept not found")
     
@@ -114,7 +115,8 @@ def update_concept(
     db.add(concept)
     db.commit()
     db.refresh(concept)
-    return concept
+    # Reload with author information
+    return db.query(models.Concept).options(joinedload(models.Concept.author)).filter(models.Concept.id == concept_id).first()
 
 
 @router.delete("/{concept_id}", status_code=204)
@@ -136,13 +138,13 @@ def delete_concept(
     return None
 
 
-@router.post("/{concept_id}/publish", response_model=schemas.ConceptOut)
+@router.post("/{concept_id}/publish", response_model=schemas.ConceptDetail)
 def publish_concept(
     concept_id: int,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_admin_user)
 ):
-    concept = db.query(models.Concept).filter(models.Concept.id == concept_id).first()
+    concept = db.query(models.Concept).options(joinedload(models.Concept.author)).filter(models.Concept.id == concept_id).first()
     if not concept:
         raise HTTPException(status_code=404, detail="Concept not found")
     
@@ -152,4 +154,5 @@ def publish_concept(
     db.add(concept)
     db.commit()
     db.refresh(concept)
-    return concept
+    # Reload with author information
+    return db.query(models.Concept).options(joinedload(models.Concept.author)).filter(models.Concept.id == concept_id).first()

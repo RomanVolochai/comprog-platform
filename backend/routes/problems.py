@@ -1,7 +1,7 @@
 from typing import List
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from ..db import get_db
 from .. import models, schemas, auth
@@ -9,7 +9,7 @@ from .. import models, schemas, auth
 router = APIRouter(tags=["problems"])
 
 
-@router.get("/", response_model=List[schemas.ProblemOut])
+@router.get("/", response_model=List[schemas.ProblemDetail])
 def list_problems(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_active_user),
@@ -20,7 +20,7 @@ def list_problems(
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
 ):
-    query = db.query(models.Problem)
+    query = db.query(models.Problem).options(joinedload(models.Problem.author))
     
     # Non-admin users can only see published problems
     if not current_user.is_admin:
@@ -67,7 +67,7 @@ def get_problem(
     return problem
 
 
-@router.post("/", response_model=schemas.ProblemOut)
+@router.post("/", response_model=schemas.ProblemDetail)
 def create_problem(
     payload: schemas.ProblemCreate, 
     db: Session = Depends(get_db),
@@ -81,17 +81,18 @@ def create_problem(
     db.add(problem)
     db.commit()
     db.refresh(problem)
-    return problem
+    # Reload with author information
+    return db.query(models.Problem).options(joinedload(models.Problem.author)).filter(models.Problem.id == problem.id).first()
 
 
-@router.put("/{problem_id}", response_model=schemas.ProblemOut)
+@router.put("/{problem_id}", response_model=schemas.ProblemDetail)
 def update_problem(
     problem_id: int, 
     payload: schemas.ProblemUpdate, 
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_admin_user)
 ):
-    problem = db.query(models.Problem).filter(models.Problem.id == problem_id).first()
+    problem = db.query(models.Problem).options(joinedload(models.Problem.author)).filter(models.Problem.id == problem_id).first()
     if not problem:
         raise HTTPException(status_code=404, detail="Problem not found")
     
@@ -114,7 +115,8 @@ def update_problem(
     db.add(problem)
     db.commit()
     db.refresh(problem)
-    return problem
+    # Reload with author information
+    return db.query(models.Problem).options(joinedload(models.Problem.author)).filter(models.Problem.id == problem_id).first()
 
 
 @router.delete("/{problem_id}", status_code=204)
@@ -136,13 +138,13 @@ def delete_problem(
     return None
 
 
-@router.post("/{problem_id}/publish", response_model=schemas.ProblemOut)
+@router.post("/{problem_id}/publish", response_model=schemas.ProblemDetail)
 def publish_problem(
     problem_id: int,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_admin_user)
 ):
-    problem = db.query(models.Problem).filter(models.Problem.id == problem_id).first()
+    problem = db.query(models.Problem).options(joinedload(models.Problem.author)).filter(models.Problem.id == problem_id).first()
     if not problem:
         raise HTTPException(status_code=404, detail="Problem not found")
     
@@ -152,4 +154,5 @@ def publish_problem(
     db.add(problem)
     db.commit()
     db.refresh(problem)
-    return problem
+    # Reload with author information
+    return db.query(models.Problem).options(joinedload(models.Problem.author)).filter(models.Problem.id == problem_id).first()

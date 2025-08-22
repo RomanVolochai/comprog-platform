@@ -1,7 +1,7 @@
 from typing import List
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from ..db import get_db
 from .. import models, schemas, auth
@@ -9,7 +9,7 @@ from .. import models, schemas, auth
 router = APIRouter(tags=["implementations"])
 
 
-@router.get("/", response_model=List[schemas.ImplementationOut])
+@router.get("/", response_model=List[schemas.ImplementationDetail])
 def list_implementations(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_active_user),
@@ -20,7 +20,7 @@ def list_implementations(
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
 ):
-    query = db.query(models.Implementation)
+    query = db.query(models.Implementation).options(joinedload(models.Implementation.author))
     
     # Non-admin users can only see published implementations
     if not current_user.is_admin:
@@ -67,7 +67,7 @@ def get_implementation(
     return implementation
 
 
-@router.post("/", response_model=schemas.ImplementationOut)
+@router.post("/", response_model=schemas.ImplementationDetail)
 def create_implementation(
     payload: schemas.ImplementationCreate, 
     db: Session = Depends(get_db),
@@ -81,17 +81,18 @@ def create_implementation(
     db.add(implementation)
     db.commit()
     db.refresh(implementation)
-    return implementation
+    # Reload with author information
+    return db.query(models.Implementation).options(joinedload(models.Implementation.author)).filter(models.Implementation.id == implementation.id).first()
 
 
-@router.put("/{implementation_id}", response_model=schemas.ImplementationOut)
+@router.put("/{implementation_id}", response_model=schemas.ImplementationDetail)
 def update_implementation(
     implementation_id: int, 
     payload: schemas.ImplementationUpdate, 
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_admin_user)
 ):
-    implementation = db.query(models.Implementation).filter(models.Implementation.id == implementation_id).first()
+    implementation = db.query(models.Implementation).options(joinedload(models.Implementation.author)).filter(models.Implementation.id == implementation_id).first()
     if not implementation:
         raise HTTPException(status_code=404, detail="Implementation not found")
     
@@ -114,7 +115,8 @@ def update_implementation(
     db.add(implementation)
     db.commit()
     db.refresh(implementation)
-    return implementation
+    # Reload with author information
+    return db.query(models.Implementation).options(joinedload(models.Implementation.author)).filter(models.Implementation.id == implementation_id).first()
 
 
 @router.delete("/{implementation_id}", status_code=204)
@@ -136,13 +138,13 @@ def delete_implementation(
     return None
 
 
-@router.post("/{implementation_id}/publish", response_model=schemas.ImplementationOut)
+@router.post("/{implementation_id}/publish", response_model=schemas.ImplementationDetail)
 def publish_implementation(
     implementation_id: int,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_admin_user)
 ):
-    implementation = db.query(models.Implementation).filter(models.Implementation.id == implementation_id).first()
+    implementation = db.query(models.Implementation).options(joinedload(models.Implementation.author)).filter(models.Implementation.id == implementation_id).first()
     if not implementation:
         raise HTTPException(status_code=404, detail="Implementation not found")
     
@@ -152,4 +154,5 @@ def publish_implementation(
     db.add(implementation)
     db.commit()
     db.refresh(implementation)
-    return implementation
+    # Reload with author information
+    return db.query(models.Implementation).options(joinedload(models.Implementation.author)).filter(models.Implementation.id == implementation_id).first()

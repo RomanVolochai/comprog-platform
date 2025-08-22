@@ -307,9 +307,9 @@ export default function UserLessons(): JSX.Element {
             <p className="text-gray-500">Try adjusting your search or check back later.</p>
           </div>
         ) : (
-                     // responsive grid that adapts to screen size
+                     // responsive grid with fixed block sizes
            <div className="mx-auto grid gap-6 max-w-7xl w-full" style={{ 
-             gridTemplateColumns: 'repeat(auto-fit, minmax(14rem, 1fr))'
+             gridTemplateColumns: 'repeat(auto-fit, minmax(16rem, 16rem))'
            }}>
              {filtered.map((item) => {
                const tint = getCardTint(item.type || '', item.status === 'draft')

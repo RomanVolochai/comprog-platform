@@ -576,3 +576,27 @@ button {
 .problem-link .content-link-slug {
   @apply text-red-700;
 }
+
+/* LaTeX math styling */
+.katex {
+  font-size: 1.1em;
+}
+
+.katex-display {
+  margin: 1em 0;
+  text-align: center;
+}
+
+.katex-display > .katex {
+  display: inline-block;
+  text-align: left;
+}
+
+.math-inline {
+  font-family: 'KaTeX_Main', 'Times New Roman', serif;
+}
+
+.math-block {
+  text-align: center;
+  margin: 1em 0;
+}
