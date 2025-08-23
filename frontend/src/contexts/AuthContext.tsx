@@ -5,7 +5,6 @@ interface User {
   username: string
   email: string
   is_admin: boolean
-  is_active: boolean
   created_at: string
 }
 

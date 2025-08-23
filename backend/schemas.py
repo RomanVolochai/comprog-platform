@@ -28,7 +28,6 @@ class UserLogin(BaseModel):
 class UserOut(UserBase):
     id: int
     is_admin: bool
-    is_active: bool
     created_at: datetime
 
     class Config:
