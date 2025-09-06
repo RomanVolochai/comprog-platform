@@ -336,7 +336,10 @@ export default function UserLessons(): JSX.Element {
                          <div className="flex flex-col items-center justify-center h-full">
                            <h3 className="text-sm font-bold leading-tight line-clamp-2 text-center mb-1" style={{ color: 'black' }}>{item.title}</h3>
                            {item.status === 'draft' && (
-                             <span className="px-2 py-1 rounded text-xs font-medium bg-gray-200 backdrop-blur-sm" style={{ color: 'black' }}>Draft</span>
+                             <span className="px-2 py-1 rounded text-xs font-medium bg-yellow-200 backdrop-blur-sm" style={{ color: 'black' }}>Draft</span>
+                           )}
+                           {item.status === 'archived' && (
+                             <span className="px-2 py-1 rounded text-xs font-medium bg-gray-200 backdrop-blur-sm" style={{ color: 'black' }}>Archived</span>
                            )}
                          </div>
                        </div>

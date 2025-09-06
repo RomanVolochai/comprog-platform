@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Dict
 from pydantic import BaseModel, Field, validator
 import re
 
@@ -62,9 +62,23 @@ class ContentBase(BaseModel):
 
     @validator('status')
     def validate_status(cls, v):
-        valid_statuses = ['draft', 'published']
+        valid_statuses = ['draft', 'published', 'archived']
         if v not in valid_statuses:
             raise ValueError(f'Status must be one of: {valid_statuses}')
+        return v
+
+    @validator('tags')
+    def validate_tags(cls, v):
+        if v and v.strip():
+            # Split tags by comma and validate each tag
+            tags = [tag.strip() for tag in v.split(',') if tag.strip()]
+            for tag in tags:
+                # Tags should be valid slugs (alphanumeric, hyphens, underscores only)
+                if not re.match(r'^[a-zA-Z0-9_-]+$', tag):
+                    raise ValueError(f'Tag "{tag}" contains invalid characters. Tags should only contain letters, numbers, hyphens, and underscores.')
+                # Tags should be reasonable length
+                if len(tag) > 50:
+                    raise ValueError(f'Tag "{tag}" is too long. Maximum length is 50 characters.')
         return v
 
 
@@ -93,9 +107,23 @@ class ConceptUpdate(BaseModel):
     @validator('status')
     def validate_status(cls, v):
         if v is not None:
-            valid_statuses = ['draft', 'published']
+            valid_statuses = ['draft', 'published', 'archived']
             if v not in valid_statuses:
                 raise ValueError(f'Status must be one of: {valid_statuses}')
+        return v
+
+    @validator('tags')
+    def validate_tags(cls, v):
+        if v is not None and v.strip():
+            # Split tags by comma and validate each tag
+            tags = [tag.strip() for tag in v.split(',') if tag.strip()]
+            for tag in tags:
+                # Tags should be valid slugs (alphanumeric, hyphens, underscores only)
+                if not re.match(r'^[a-zA-Z0-9_-]+$', tag):
+                    raise ValueError(f'Tag "{tag}" contains invalid characters. Tags should only contain letters, numbers, hyphens, and underscores.')
+                # Tags should be reasonable length
+                if len(tag) > 50:
+                    raise ValueError(f'Tag "{tag}" is too long. Maximum length is 50 characters.')
         return v
 
 
@@ -139,9 +167,23 @@ class ImplementationUpdate(BaseModel):
     @validator('status')
     def validate_status(cls, v):
         if v is not None:
-            valid_statuses = ['draft', 'published']
+            valid_statuses = ['draft', 'published', 'archived']
             if v not in valid_statuses:
                 raise ValueError(f'Status must be one of: {valid_statuses}')
+        return v
+
+    @validator('tags')
+    def validate_tags(cls, v):
+        if v is not None and v.strip():
+            # Split tags by comma and validate each tag
+            tags = [tag.strip() for tag in v.split(',') if tag.strip()]
+            for tag in tags:
+                # Tags should be valid slugs (alphanumeric, hyphens, underscores only)
+                if not re.match(r'^[a-zA-Z0-9_-]+$', tag):
+                    raise ValueError(f'Tag "{tag}" contains invalid characters. Tags should only contain letters, numbers, hyphens, and underscores.')
+                # Tags should be reasonable length
+                if len(tag) > 50:
+                    raise ValueError(f'Tag "{tag}" is too long. Maximum length is 50 characters.')
         return v
 
 
@@ -185,9 +227,23 @@ class ProblemUpdate(BaseModel):
     @validator('status')
     def validate_status(cls, v):
         if v is not None:
-            valid_statuses = ['draft', 'published']
+            valid_statuses = ['draft', 'published', 'archived']
             if v not in valid_statuses:
                 raise ValueError(f'Status must be one of: {valid_statuses}')
+        return v
+
+    @validator('tags')
+    def validate_tags(cls, v):
+        if v is not None and v.strip():
+            # Split tags by comma and validate each tag
+            tags = [tag.strip() for tag in v.split(',') if tag.strip()]
+            for tag in tags:
+                # Tags should be valid slugs (alphanumeric, hyphens, underscores only)
+                if not re.match(r'^[a-zA-Z0-9_-]+$', tag):
+                    raise ValueError(f'Tag "{tag}" contains invalid characters. Tags should only contain letters, numbers, hyphens, and underscores.')
+                # Tags should be reasonable length
+                if len(tag) > 50:
+                    raise ValueError(f'Tag "{tag}" is too long. Maximum length is 50 characters.')
         return v
 
 
@@ -204,5 +260,7 @@ class ProblemOut(ContentBase):
 
 class ProblemDetail(ProblemOut):
     author: UserOut
+
+
 
 

@@ -107,7 +107,7 @@ def update_implementation(
     
     # Update published_at when status changes to published
     if payload.status == "published" and implementation.status != "published":
-        payload.published_at = datetime.utcnow()
+        implementation.published_at = datetime.utcnow()
     
     for key, value in payload.model_dump(exclude_unset=True).items():
         setattr(implementation, key, value)

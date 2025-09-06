@@ -107,7 +107,7 @@ def update_problem(
     
     # Update published_at when status changes to published
     if payload.status == "published" and problem.status != "published":
-        payload.published_at = datetime.utcnow()
+        problem.published_at = datetime.utcnow()
     
     for key, value in payload.model_dump(exclude_unset=True).items():
         setattr(problem, key, value)

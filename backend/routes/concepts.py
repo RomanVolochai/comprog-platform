@@ -107,7 +107,7 @@ def update_concept(
     
     # Update published_at when status changes to published
     if payload.status == "published" and concept.status != "published":
-        payload.published_at = datetime.utcnow()
+        concept.published_at = datetime.utcnow()
     
     for key, value in payload.model_dump(exclude_unset=True).items():
         setattr(concept, key, value)
@@ -156,3 +156,13 @@ def publish_concept(
     db.refresh(concept)
     # Reload with author information
     return db.query(models.Concept).options(joinedload(models.Concept.author)).filter(models.Concept.id == concept_id).first()
+
+
+@router.get("/all/slugs")
+def get_concept_slugs(
+    current_user: models.User = Depends(auth.get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Get all concept slugs for tag validation"""
+    concepts = db.query(models.Concept).filter(models.Concept.status == "published").all()
+    return {"slugs": [concept.slug for concept in concepts]}

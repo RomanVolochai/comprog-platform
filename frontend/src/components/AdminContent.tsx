@@ -273,7 +273,10 @@ export const AdminContent: React.FC<AdminContentProps> = ({ contentType }) => {
                         <div className="flex flex-col items-center justify-center h-full">
                           <h3 className="text-sm font-bold leading-tight line-clamp-2 text-center mb-1" style={{ color: 'black' }}>{item.title}</h3>
                           {item.status === 'draft' && (
-                            <span className="px-2 py-1 rounded text-xs font-medium bg-gray-200 backdrop-blur-sm" style={{ color: 'black' }}>Draft</span>
+                            <span className="px-2 py-1 rounded text-xs font-medium bg-yellow-200 backdrop-blur-sm" style={{ color: 'black' }}>Draft</span>
+                          )}
+                          {item.status === 'archived' && (
+                            <span className="px-2 py-1 rounded text-xs font-medium bg-gray-200 backdrop-blur-sm" style={{ color: 'black' }}>Archived</span>
                           )}
                         </div>
                       </div>
@@ -333,7 +336,8 @@ export const AdminContent: React.FC<AdminContentProps> = ({ contentType }) => {
                   </span>
                   <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                     selected.status === 'published' ? 'bg-green-100 text-green-800' :
-                    selected.status === 'draft' ? 'bg-gray-100 text-gray-800' :
+                    selected.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
+                    selected.status === 'archived' ? 'bg-gray-100 text-gray-800' :
                     'bg-red-100 text-red-800'
                   }`}>
                     {selected.status}
